@@ -1,12 +1,22 @@
 const axios = require("axios");
+const { parse } = require("node-html-parser");
+
+function getTitleFromHtml(htmlString, usernmae) {
+  const root = parse(htmlString);
+  const titleTag = root.querySelector("title");
+  const titleText = titleTag
+    ? titleTag.textContent.split(`(@${usernmae})`)[0].trim()
+    : "No se encontró la etiqueta <title>";
+
+  return titleText;
+}
 
 async function getUserStatus(username) {
   try {
     console.log("Verifying user:", username);
     const response = await axios.get(`https://www.instagram.com/${username}/`);
-
     if (response.data.includes(`name="description"`)) {
-      return { username, followers: 0, following: 0 };
+      return { username, showName: getTitleFromHtml(response.data, username) };
     } else {
       return null;
     }
